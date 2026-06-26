@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STARSTIL — Galactic Empire</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #FFD700;
+    --neon: #7B2FFF;
+    --cyan: #00F5FF;
+    --dark: #04020F;
+    --card: #0D0825;
+    --border: rgba(123,47,255,0.35);
+  }
+
+  body {
+    background: var(--dark);
+    color: #fff;
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* STARFIELD */
+  #starfield {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* LAYOUT */
+  .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 0 100px; }
+
+  /* HEADER */
+  header {
+    padding: 18px 20px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(4,2,15,0.85);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900; font-size: 20px;
+    background: linear-gradient(135deg, var(--gold), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+  .balance-pill {
+    background: linear-gradient(135deg, rgba(123,47,255,0.3), rgba(0,245,255,0.15));
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 14px;
+    font-family: 'Orbitron', sans-serif; font-size: 13px;
+    color: var(--gold); font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 28px 20px 10px;
+    text-align: center;
+  }
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px; letter-spacing: 4px;
+    color: var(--cyan); opacity: 0.8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .hero-sub {
+    font-size: 13px; color: rgba(255,255,255,0.45);
+    margin-bottom: 20px;
+  }
+
+  /* MAIN PLANET */
+  .planet-stage {
+    display: flex; justify-content: center;
+    margin: 0 auto 10px;
+    position: relative; width: 200px; height: 200px;
+  }
+  .planet-glow {
+    position: absolute; inset: -30px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(123,47,255,0.25) 0%, transparent 70%);
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+  @keyframes pulseGlow {
+    0%,100%{ transform: scale(1); opacity:0.8; }
+    50%{ transform: scale(1.12); opacity:1; }
+  }
+  .planet-ring {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%) rotateX(70deg);
+    width: 240px; height: 60px;
+    border: 3px solid rgba(255,215,0,0.25);
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255,215,0,0.1);
+    animation: ringRotate 8s linear infinite;
+  }
+  @keyframes ringRotate { from{transform:translate(-50%,-50%) rotateX(70deg) rotateZ(0deg)} to{transform:translate(-50%,-50%) rotateX(70deg) rotateZ(360deg)} }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px; padding: 16px 20px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 10px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+  .stat-card:hover { border-color: var(--neon); }
+  .stat-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px; font-weight: 900;
+    color: var(--gold); line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label { font-size: 10px; color: rgba(255,255,255,0.45); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* SECTION TITLE */
+  .sec-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px; letter-spacing: 3px;
+    color: var(--cyan); opacity: 0.7;
+    padding: 18px 20px 10px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+  /* PLANET CARDS */
+  .planets-list { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+
+  .planet-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px; padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative; overflow: hidden;
+  }
+  .planet-card::before {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg, transparent, rgba(123,47,255,0.07));
+    opacity:0; transition: opacity 0.3s;
+  }
+  .planet-card:hover { border-color: var(--neon); transform: translateY(-2px); }
+  .planet-card:hover::before { opacity:1; }
+  .planet-card.locked { opacity: 0.5; cursor: not-allowed; }
+
+  .planet-icon { width: 60px; height: 60px; flex-shrink: 0; }
+  .planet-info { flex: 1; }
+  .planet-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: #fff; margin-bottom: 4px;
+  }
+  .planet-type { font-size: 11px; color: rgba(255,255,255,0.45); margin-bottom: 8px; }
+  .planet-rate {
+    font-size: 12px; color: var(--gold);
+    font-weight: 600;
+  }
+  .planet-action {
+    background: linear-gradient(135deg, var(--neon), #5B00CC);
+    border: none; border-radius: 10px;
+    padding: 8px 16px; color: #fff;
+    font-family: 'Orbitron', sans-serif; font-size: 11px;
+    font-weight: 700; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .planet-action:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(123,47,255,0.5); }
+  .planet-action.collect {
+    background: linear-gradient(135deg, #00C853, #007B33);
+  }
+  .planet-action.locked-btn {
+    background: rgba(255,255,255,0.08);
+    cursor: not-allowed;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin-top: 6px; }
+  .progress-bar {
+    height: 4px; background: rgba(255,255,255,0.1);
+    border-radius: 4px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon), var(--cyan));
+    border-radius: 4px;
+    transition: width 1s linear;
+  }
+
+  /* MISSIONS */
+  .missions-list { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+  .mission-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .mission-icon { font-size: 24px; }
+  .mission-info { flex: 1; }
+  .mission-name { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+  .mission-desc { font-size: 11px; color: rgba(255,255,255,0.45); }
+  .mission-reward {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px; color: var(--gold); font-weight: 700;
+  }
+  .mission-done { color: #00C853; font-size: 20px; }
+
+  /* LEADERBOARD */
+  .leaderboard { padding: 0 20px; }
+  .lb-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .lb-rank {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px; font-weight: 900;
+    width: 28px; text-align: center;
+  }
+  .lb-rank.gold { color: #FFD700; }
+  .lb-rank.silver { color: #C0C0C0; }
+  .lb-rank.bronze { color: #CD7F32; }
+  .lb-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon), var(--cyan));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .lb-name { flex: 1; font-size: 13px; font-weight: 600; }
+  .lb-score { font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--gold); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: rgba(13,8,37,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex; padding: 10px 0 20px;
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    cursor: pointer; padding: 4px;
+    transition: all 0.2s;
+  }
+  .nav-icon { font-size: 22px; }
+  .nav-label { font-size: 10px; color: rgba(255,255,255,0.45); letter-spacing: 1px; }
+  .nav-item.active .nav-label { color: var(--cyan); }
+  .nav-item.active .nav-icon { filter: drop-shadow(0 0 6px var(--cyan)); }
+
+  /* TOAST */
+  .toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: linear-gradient(135deg, #00C853, #007B33);
+    color: #fff; padding: 12px 24px; border-radius: 30px;
+    font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700;
+    opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8); z-index: 200;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 28px 28px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%; max-width: 480px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-title {
+    font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900;
+    color: var(--gold); margin-bottom: 6px;
+  }
+  .modal-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+  .modal-stat { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .modal-stat-label { font-size: 13px; color: rgba(255,255,255,0.5); }
+  .modal-stat-val { font-family: 'Orbitron', sans-serif; font-size: 13px; color: #fff; font-weight: 700; }
+  .modal-btn {
+    width: 100%; margin-top: 20px; padding: 16px;
+    background: linear-gradient(135deg, var(--neon), #5B00CC);
+    border: none; border-radius: 14px; color: #fff;
+    font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 900;
+    cursor: pointer; letter-spacing: 2px;
+    transition: all 0.2s;
+  }
+  .modal-btn:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(123,47,255,0.5); }
+  .modal-close {
+    float: right; background: rgba(255,255,255,0.1); border: none;
+    border-radius: 50%; width: 32px; height: 32px;
+    color: #fff; font-size: 16px; cursor: pointer; line-height: 32px; text-align: center;
+  }
+
+  /* PAGE SECTIONS */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ATTACK PAGE */
+  .attack-grid { padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .enemy-card {
+    background: var(--card); border: 1px solid rgba(255,50,50,0.3);
+    border-radius: 16px; padding: 16px; text-align: center; cursor: pointer;
+    transition: all 0.25s;
+  }
+  .enemy-card:hover { border-color: #FF3333; transform: translateY(-2px); }
+  .enemy-name { font-family: 'Orbitron', sans-serif; font-size: 12px; color: #fff; margin: 8px 0 4px; }
+  .enemy-power { font-size: 11px; color: rgba(255,100,100,0.8); margin-bottom: 10px; }
+  .attack-btn {
+    background: linear-gradient(135deg, #CC0000, #880000);
+    border: none; border-radius: 8px; padding: 7px 14px;
+    color: #fff; font-family: 'Orbitron', sans-serif; font-size: 10px;
+    font-weight: 700; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .attack-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(200,0,0,0.4); }
+
+  /* SHOP */
+  .shop-grid { padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .shop-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px; text-align: center; cursor: pointer;
+    transition: all 0.25s;
+  }
+  .shop-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .shop-name { font-family: 'Orbitron', sans-serif; font-size: 11px; color: #fff; margin: 8px 0 4px; }
+  .shop-desc { font-size: 10px; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+  .shop-price {
+    background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,215,0,0.05));
+    border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; padding: 7px;
+    font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--gold); font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .shop-price:hover { background: rgba(255,215,0,0.3); }
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div class="app">
+  <header>
+    <div class="logo">STARSTIL</div>
+    <div class="balance-pill">
+      <span>⭐</span>
+      <span id="balance">12,450</span> $STARSTIL
+    </div>
+  </header>
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-title">Your Galactic Empire</div>
+      <div class="planet-stage">
+        <div class="planet-glow"></div>
+        <div class="planet-ring"></div>
+        <svg width="180" height="180" viewBox="0 0 180 180">
+          <defs>
+            <radialGradient id="pg" cx="38%" cy="35%">
+              <stop offset="0%" stop-color="#9B6BFF"/>
+              <stop offset="50%" stop-color="#4B1FBF"/>
+              <stop offset="100%" stop-color="#1A0550"/>
+            </radialGradient>
+            <radialGradient id="pg2" cx="40%" cy="40%">
+              <stop offset="0%" stop-color="#00F5FF" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </radialGradient>
+            <clipPath id="pclip"><circle cx="90" cy="90" r="78"/></clipPath>
+          </defs>
+          <circle cx="90" cy="90" r="78" fill="url(#pg)"/>
+          <ellipse cx="70" cy="65" rx="30" ry="12" fill="rgba(255,255,255,0.05)" clip-path="url(#pclip)"/>
+          <ellipse cx="110" cy="110" rx="20" ry="8" fill="rgba(0,245,255,0.08)" clip-path="url(#pclip)"/>
+          <circle cx="55" cy="55" r="18" fill="rgba(123,47,255,0.3)" clip-path="url(#pclip)"/>
+          <circle cx="120" cy="120" r="12" fill="rgba(0,100,255,0.2)" clip-path="url(#pclip)"/>
+          <circle cx="90" cy="90" r="78" fill="url(#pg2)"/>
+          <circle cx="62" cy="62" r="8" fill="rgba(255,255,255,0.07)" clip-path="url(#pclip)"/>
+        </svg>
+      </div>
+      <div class="hero-sub">Mining at 48 $STARSTIL / hour</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="planets-count">3</div>
+        <div class="stat-label">Planets</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">Lv.7</div>
+        <div class="stat-label">Empire</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">#42</div>
+        <div class="stat-label">Rank</div>
+      </div>
+    </div>
+
+    <div class="sec-title">My Planets</div>
+    <div class="planets-list">
+
+      <div class="planet-card" onclick="openPlanet('Zorax Prime','Crystal Mine','32 $STARSTIL/hr','Rare crystal deposits power this ancient world.',75)">
+        <svg class="planet-icon" viewBox="0 0 60 60">
+          <defs><radialGradient id="p1" cx="35%" cy="35%"><stop offset="0%" stop-color="#00F5FF"/><stop offset="100%" stop-color="#003355"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="26" fill="url(#p1)"/>
+          <ellipse cx="22" cy="24" rx="10" ry="4" fill="rgba(255,255,255,0.1)"/>
+          <circle cx="38" cy="38" r="7" fill="rgba(0,100,200,0.3)"/>
+        </svg>
+        <div class="planet-info">
+          <div class="planet-name">Zorax Prime</div>
+          <div class="planet-type">💎 Crystal Mine</div>
+          <div class="planet-rate">+32 $STARSTIL/hr</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:75%"></div></div>
+          </div>
+        </div>
+        <button class="planet-action collect">Collect</button>
+      </div>
+
+      <div class="planet-card" onclick="openPlanet('Ignara','Plasma Forge','12 $STARSTIL/hr','Volcanic world with blazing plasma cores.',40)">
+        <svg class="planet-icon" viewBox="0 0 60 60">
+          <defs><radialGradient id="p2" cx="35%" cy="35%"><stop offset="0%" stop-color="#FF6B00"/><stop offset="100%" stop-color="#550000"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="26" fill="url(#p2)"/>
+          <ellipse cx="24" cy="22" rx="8" ry="3" fill="rgba(255,200,0,0.2)"/>
+          <circle cx="36" cy="38" r="6" fill="rgba(255,100,0,0.3)"/>
+          <ellipse cx="30" cy="30" rx="26" ry="26" fill="rgba(255,50,0,0.05)"/>
+        </svg>
+        <div class="planet-info">
+          <div class="planet-name">Ignara</div>
+          <div class="planet-type">🔥 Plasma Forge</div>
+          <div class="planet-rate">+12 $STARSTIL/hr</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+          </div>
+        </div>
+        <button class="planet-action collect">Collect</button>
+      </div>
+
+      <div class="planet-card" onclick="openPlanet('Verdania','Bio Reactor','4 $STARSTIL/hr','Lush jungle planet converting life energy to tokens.',20)">
+        <svg class="planet-icon" viewBox="0 0 60 60">
+          <defs><radialGradient id="p3" cx="35%" cy="35%"><stop offset="0%" stop-color="#00FF88"/><stop offset="100%" stop-color="#003322"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="26" fill="url(#p3)"/>
+          <ellipse cx="20" cy="26" rx="9" ry="4" fill="rgba(0,255,100,0.2)"/>
+          <circle cx="38" cy="36" r="7" fill="rgba(0,150,50,0.3)"/>
+        </svg>
+        <div class="planet-info">
+          <div class="planet-name">Verdania</div>
+          <div class="planet-type">🌿 Bio Reactor</div>
+          <div class="planet-rate">+4 $STARSTIL/hr</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:20%; background: linear-gradient(90deg,#00C853,#00FF88)"></div></div>
+          </div>
+        </div>
+        <button class="planet-action collect">Collect</button>
+      </div>
+
+      <div class="planet-card locked">
+        <svg class="planet-icon" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="26" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+          <text x="30" y="36" text-anchor="middle" font-size="20">🔒</text>
+        </svg>
+        <div class="planet-info">
+          <div class="planet-name" style="color:rgba(255,255,255,0.4)">Nexus VII</div>
+          <div class="planet-type">⚡ Dark Matter Core</div>
+          <div class="planet-rate" style="color:rgba(255,255,255,0.3)">Unlock at Lv.10</div>
+        </div>
+        <button class="planet-action locked-btn">Locked</button>
+      </div>
+
+    </div>
+
+    <div class="sec-title">Daily Missions</div>
+    <div class="missions-list">
+      <div class="mission-card">
+        <div class="mission-icon">⚔️</div>
+        <div class="mission-info">
+          <div class="mission-name">First Strike</div>
+          <div class="mission-desc">Attack 1 enemy planet</div>
+        </div>
+        <div>
+          <div class="mission-reward">+500</div>
+          <div style="font-size:10px;color:rgba(255,215,0,0.6);text-align:right">$STARSTIL</div>
+        </div>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">💰</div>
+        <div class="mission-info">
+          <div class="mission-name">Collector</div>
+          <div class="mission-desc">Collect from all planets</div>
+        </div>
+        <div class="mission-done">✓</div>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">🚀</div>
+        <div class="mission-info">
+          <div class="mission-name">Fleet Builder</div>
+          <div class="mission-desc">Buy 1 ship from Shop</div>
+        </div>
+        <div>
+          <div class="mission-reward">+300</div>
+          <div style="font-size:10px;color:rgba(255,215,0,0.6);text-align:right">$STARSTIL</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATTACK PAGE -->
+  <div class="page" id="page-attack">
+    <div class="sec-title" style="padding-top:24px">Enemy Galaxies</div>
+    <div class="attack-grid">
+      <div class="enemy-card" onclick="doAttack(this,'Kraglon','320')">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <defs><radialGradient id="e1" cx="35%" cy="35%"><stop offset="0%" stop-color="#FF3366"/><stop offset="100%" stop-color="#550011"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="26" fill="url(#e1)"/>
+          <ellipse cx="22" cy="24" rx="9" ry="3" fill="rgba(255,255,255,0.1)"/>
+        </svg>
+        <div class="enemy-name">Kraglon</div>
+        <div class="enemy-power">⚔️ Power: 1,200</div>
+        <button class="attack-btn">ATTACK</button>
+      </div>
+      <div class="enemy-card" onclick="doAttack(this,'Zethara','180')">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <defs><radialGradient id="e2" cx="35%" cy="35%"><stop offset="0%" stop-color="#FF9900"/><stop offset="100%" stop-color="#553300"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="26" fill="url(#e2)"/>
+          <circle cx="36" cy="36" r="8" fill="rgba(255,150,0,0.3)"/>
+        </svg>
+        <div class="enemy-name">Zethara</div>
+        <div class="enemy-power">⚔️ Power: 800</div>
+        <button class="attack-btn">ATTACK</button>
+      </div>
+      <div class="enemy-card" onclick="doAttack(this,'Morven','520')">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <defs><radialGradient id="e3" cx="35%" cy="35%"><stop offset="0%" stop-color="#CC00FF"/><stop offset="100%" stop-color="#330044"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="26" fill="url(#e3)"/>
+          <ellipse cx="24" cy="22" rx="8" ry="3" fill="rgba(200,0,255,0.2)"/>
+        </svg>
+        <div class="enemy-name">Morven</div>
+        <div class="enemy-power">⚔️ Power: 2,100</div>
+        <button class="attack-btn">ATTACK</button>
+      </div>
+      <div class="enemy-card" onclick="doAttack(this,'Drixon','95')">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <defs><radialGradient id="e4" cx="35%" cy="35%"><stop offset="0%" stop-color="#00CCFF"/><stop offset="100%" stop-color="#002244"/></radialGradient></defs>
+          <circle cx="30" cy="30" r="26" fill="url(#e4)"/>
+          <circle cx="38" cy="38" r="7" fill="rgba(0,200,255,0.2)"/>
+        </svg>
+        <div class="enemy-name">Drixon</div>
+        <div class="enemy-power">⚔️ Power: 450</div>
+        <button class="attack-btn">ATTACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHOP PAGE -->
+  <div class="page" id="page-shop">
+    <div class="sec-title" style="padding-top:24px">Galactic Shop</div>
+    <div class="shop-grid">
+      <div class="shop-card">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <polygon points="30,5 38,22 57,22 42,34 48,52 30,40 12,52 18,34 3,22 22,22" fill="rgba(255,215,0,0.15)" stroke="#FFD700" stroke-width="1.5"/>
+          <polygon points="30,12 36,24 50,24 39,32 43,46 30,37 17,46 21,32 10,24 24,24" fill="rgba(255,215,0,0.3)"/>
+        </svg>
+        <div class="shop-name">Star Fighter</div>
+        <div class="shop-desc">+15% attack power</div>
+        <div class="shop-price" onclick="buyItem(this,'Star Fighter',800)">800 $STARSTIL</div>
+      </div>
+      <div class="shop-card">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <rect x="20" y="15" width="20" height="30" rx="4" fill="rgba(0,245,255,0.15)" stroke="#00F5FF" stroke-width="1.5"/>
+          <rect x="25" y="20" width="10" height="6" rx="2" fill="rgba(0,245,255,0.4)"/>
+          <ellipse cx="30" cy="50" rx="12" ry="4" fill="rgba(0,245,255,0.1)"/>
+          <line x1="18" y1="30" x2="10" y2="38" stroke="#00F5FF" stroke-width="1.5" opacity="0.5"/>
+          <line x1="42" y1="30" x2="50" y2="38" stroke="#00F5FF" stroke-width="1.5" opacity="0.5"/>
+        </svg>
+        <div class="shop-name">Shield Module</div>
+        <div class="shop-desc">+20% defense boost</div>
+        <div class="shop-price" onclick="buyItem(this,'Shield Module',600)">600 $STARSTIL</div>
+      </div>
+      <div class="shop-card">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="18" fill="rgba(123,47,255,0.15)" stroke="#7B2FFF" stroke-width="1.5"/>
+          <circle cx="30" cy="30" r="10" fill="rgba(123,47,255,0.3)"/>
+          <circle cx="30" cy="30" r="4" fill="#7B2FFF"/>
+          <line x1="30" y1="5" x2="30" y2="12" stroke="#7B2FFF" stroke-width="2" opacity="0.5"/>
+          <line x1="30" y1="48" x2="30" y2="55" stroke="#7B2FFF" stroke-width="2" opacity="0.5"/>
+          <line x1="5" y1="30" x2="12" y2="30" stroke="#7B2FFF" stroke-width="2" opacity="0.5"/>
+          <line x1="48" y1="30" x2="55" y2="30" stroke="#7B2FFF" stroke-width="2" opacity="0.5"/>
+        </svg>
+        <div class="shop-name">Mine Booster</div>
+        <div class="shop-desc">2x mining for 1 hour</div>
+        <div class="shop-price" onclick="buyItem(this,'Mine Booster',1200)">1,200 $STARSTIL</div>
+      </div>
+      <div class="shop-card">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="22" fill="rgba(255,100,0,0.1)" stroke="rgba(255,100,0,0.5)" stroke-width="1.5"/>
+          <text x="30" y="38" text-anchor="middle" font-size="22">🪐</text>
+        </svg>
+        <div class="shop-name">New Planet</div>
+        <div class="shop-desc">Expand your empire</div>
+        <div class="shop-price" onclick="buyItem(this,'New Planet',5000)">5,000 $STARSTIL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD PAGE -->
+  <div class="page" id="page-lb">
+    <div class="sec-title" style="padding-top:24px">Galaxy Rankings</div>
+    <div class="leaderboard">
+      <div class="lb-row">
+        <div class="lb-rank gold">1</div>
+        <div class="lb-avatar">👑</div>
+        <div class="lb-name">NebulaMaster</div>
+        <div class="lb-score">284,500</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank silver">2</div>
+        <div class="lb-avatar">🌟</div>
+        <div class="lb-name">VoidWalker</div>
+        <div class="lb-score">241,200</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank bronze">3</div>
+        <div class="lb-avatar">🔥</div>
+        <div class="lb-name">StarKiller99</div>
+        <div class="lb-score">198,750</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank" style="color:#7B2FFF">4</div>
+        <div class="lb-avatar">⚡</div>
+        <div class="lb-name">CryptoNova</div>
+        <div class="lb-score">176,000</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank" style="color:rgba(255,255,255,0.5)">5</div>
+        <div class="lb-avatar">💎</div>
+        <div class="lb-name">GalaxHunter</div>
+        <div class="lb-score">154,300</div>
+      </div>
+      <div class="lb-row" style="border:1px solid rgba(123,47,255,0.4);border-radius:12px;padding:12px;margin-top:8px;background:rgba(123,47,255,0.08)">
+        <div class="lb-rank" style="color:var(--cyan)">42</div>
+        <div class="lb-avatar" style="background:linear-gradient(135deg,#7B2FFF,#FFD700)">⭐</div>
+        <div class="lb-name" style="color:var(--cyan)">You</div>
+        <div class="lb-score">12,450</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end app -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="showPage('home',this)">
+    <span class="nav-icon">🌌</span>
+    <span class="nav-label">EMPIRE</span>
+  </div>
+  <div class="nav-item" onclick="showPage('attack',this)">
+    <span class="nav-icon">⚔️</span>
+    <span class="nav-label">ATTACK</span>
+  </div>
+  <div class="nav-item" onclick="showPage('shop',this)">
+    <span class="nav-icon">🛒</span>
+    <span class="nav-label">SHOP</span>
+  </div>
+  <div class="nav-item" onclick="showPage('lb',this)">
+    <span class="nav-icon">🏆</span>
+    <span class="nav-label">RANKS</span>
+  </div>
+</div>
+
+<!-- PLANET MODAL -->
+<div class="modal-overlay" id="planet-modal" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="m-name">Planet Name</div>
+    <div class="modal-sub" id="m-desc">Description here</div>
+    <div class="modal-stat"><span class="modal-stat-label">Type</span><span class="modal-stat-val" id="m-type">—</span></div>
+    <div class="modal-stat"><span class="modal-stat-label">Production</span><span class="modal-stat-val" id="m-rate">—</span></div>
+    <div class="modal-stat"><span class="modal-stat-label">Ready to Collect</span><span class="modal-stat-val" id="m-ready">—</span></div>
+    <button class="modal-btn" onclick="collectFromModal()">⭐ COLLECT $STARSTIL</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// STARFIELD
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  stars = Array.from({length: 150}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.5 + 0.2,
+    a: Math.random(),
+    speed: Math.random() * 0.005 + 0.002
+  }));
+}
+
+function drawStars() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  stars.forEach(s => {
+    s.a += s.speed;
+    const alpha = (Math.sin(s.a) + 1) / 2 * 0.8 + 0.2;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+drawStars();
+
+// STATE
+let balance = 12450;
+let currentPlanet = null;
+
+// NAVIGATION
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+  playClick();
+}
+
+// TOAST
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// BALANCE UPDATE
+function updateBalance(amt) {
+  balance += amt;
+  document.getElementById('balance').textContent = balance.toLocaleString();
+}
+
+// PLANET MODAL
+function openPlanet(name, type, rate, desc, pct) {
+  currentPlanet = {name, type, rate, ready: Math.floor(pct * 2.4)};
+  document.getElementById('m-name').textContent = name;
+  document.getElementById('m-desc').textContent = desc;
+  document.getElementById('m-type').textContent = type;
+  document.getElementById('m-rate').textContent = rate;
+  document.getElementById('m-ready').textContent = currentPlanet.ready + ' $STARSTIL';
+  document.getElementById('planet-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('planet-modal').classList.remove('open');
+}
+
+function collectFromModal() {
+  if (!currentPlanet) return;
+  const amt = currentPlanet.ready;
+  updateBalance(amt);
+  playCollect();
+  showToast('✅ Collected ' + amt + ' $STARSTIL from ' + currentPlanet.name + '!');
+  closeModal();
+}
+
+// COLLECT BUTTON (direct)
+document.querySelectorAll('.planet-action.collect').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const amt = Math.floor(Math.random() * 200 + 50);
+    updateBalance(amt);
+    playCollect();
+    showToast('✅ Collected ' + amt + ' $STARSTIL!');
+  });
+});
+
+// ATTACK
+function doAttack(card, enemy, loot) {
+  const win = Math.random() > 0.35;
+  if (win) {
+    const amt = parseInt(loot);
+    updateBalance(amt);
+    playAttackWin();
+    showToast('⚔️ Victory! Looted ' + amt + ' $STARSTIL from ' + enemy + '!');
+    card.style.opacity = '0.4';
+    card.style.pointerEvents = 'none';
+    setTimeout(() => { card.style.opacity = '1'; card.style.pointerEvents = 'auto'; }, 3000);
+  } else {
+    playAttackLose();
+    showToast('💀 Defeated by ' + enemy + '! Regroup and try again.');
+  }
+}
+
+// SHOP
+function buyItem(el, name, cost) {
+  if (balance < cost) { playAttackLose(); showToast('❌ Not enough $STARSTIL!'); return; }
+  updateBalance(-cost);
+  playBuy();
+  showToast('🛒 Purchased ' + name + '!');
+  el.textContent = '✓ Owned';
+  el.style.background = 'rgba(0,200,80,0.2)';
+  el.style.borderColor = 'rgba(0,200,80,0.4)';
+  el.style.color = '#00C853';
+  el.onclick = null;
+}
+
+// PASSIVE MINING
+setInterval(() => {
+  updateBalance(1);
+}, 3000);
+
+// =====================
+// SOUND ENGINE
+// =====================
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+
+function resumeAC() { if (AC.state === 'suspended') AC.resume(); }
+document.addEventListener('touchstart', resumeAC, {once:true});
+document.addEventListener('click', resumeAC, {once:true});
+
+function playCollect() {
+  resumeAC();
+  const t = AC.currentTime;
+  const osc = AC.createOscillator();
+  const gain = AC.createGain();
+  osc.connect(gain); gain.connect(AC.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(440, t);
+  osc.frequency.exponentialRampToValueAtTime(880, t + 0.15);
+  osc.frequency.exponentialRampToValueAtTime(1320, t + 0.3);
+  gain.gain.setValueAtTime(0.3, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+  osc.start(t); osc.stop(t + 0.4);
+}
+
+function playAttackWin() {
+  resumeAC();
+  [220,330,440,660].forEach((freq, i) => {
+    const t = AC.currentTime + i * 0.1;
+    const osc = AC.createOscillator();
+    const gain = AC.createGain();
+    osc.connect(gain); gain.connect(AC.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(0.2, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    osc.start(t); osc.stop(t + 0.15);
+  });
+}
+
+function playAttackLose() {
+  resumeAC();
+  const t = AC.currentTime;
+  const osc = AC.createOscillator();
+  const gain = AC.createGain();
+  osc.connect(gain); gain.connect(AC.destination);
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(300, t);
+  osc.frequency.exponentialRampToValueAtTime(80, t + 0.4);
+  gain.gain.setValueAtTime(0.3, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+  osc.start(t); osc.stop(t + 0.4);
+}
+
+function playBuy() {
+  resumeAC();
+  const t = AC.currentTime;
+  [523, 659, 784].forEach((freq, i) => {
+    const osc = AC.createOscillator();
+    const gain = AC.createGain();
+    osc.connect(gain); gain.connect(AC.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t + i * 0.08);
+    gain.gain.setValueAtTime(0.25, t + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.2);
+    osc.start(t + i * 0.08); osc.stop(t + i * 0.08 + 0.2);
+  });
+}
+
+function playClick() {
+  resumeAC();
+  const t = AC.currentTime;
+  const osc = AC.createOscillator();
+  const gain = AC.createGain();
+  osc.connect(gain); gain.connect(AC.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, t);
+  gain.gain.setValueAtTime(0.1, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+  osc.start(t); osc.stop(t + 0.08);
+}
+
+// AMBIENT SPACE MUSIC
+function startAmbient() {
+  resumeAC();
+  function playDrone() {
+    const osc = AC.createOscillator();
+    const gain = AC.createGain();
+    const filter = AC.createBiquadFilter();
+    osc.connect(filter); filter.connect(gain); gain.connect(AC.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(55 + Math.random() * 20, AC.currentTime);
+    filter.type = 'lowpass'; filter.frequency.value = 400;
+    gain.gain.setValueAtTime(0, AC.currentTime);
+    gain.gain.linearRampToValueAtTime(0.04, AC.currentTime + 2);
+    gain.gain.linearRampToValueAtTime(0, AC.currentTime + 6);
+    osc.start(AC.currentTime); osc.stop(AC.currentTime + 6);
+    setTimeout(playDrone, 4000 + Math.random() * 3000);
+  }
+  function playChime() {
+    const notes = [261, 329, 392, 523, 659];
+    const freq = notes[Math.floor(Math.random() * notes.length)];
+    const osc = AC.createOscillator();
+    const gain = AC.createGain();
+    osc.connect(gain); gain.connect(AC.destination);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, AC.currentTime);
+    gain.gain.linearRampToValueAtTime(0.06, AC.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 2.5);
+    osc.start(AC.currentTime); osc.stop(AC.currentTime + 2.5);
+    setTimeout(playChime, 2000 + Math.random() * 4000);
+  }
+  playDrone();
+  setTimeout(playChime, 1000);
+}
+
+// Start ambient after first interaction
+document.addEventListener('click', () => startAmbient(), {once:true});
+document.addEventListener('touchstart', () => startAmbient(), {once:true});
+</script>
+</body>
+</html>
